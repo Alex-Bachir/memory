@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import './App.css';
-// dfinit chaque carte avec un `id` unique et un `emoji`.
+
 type CardType = {
   id: number;
   emoji: string;
@@ -28,7 +28,6 @@ function App() {
     return shuffled;
   };
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const resetGame = useCallback(() => {
     setCards(generateShuffledCards(cardCount));
     setFlippedIndexes([]);
@@ -36,11 +35,12 @@ function App() {
     setTimer(0);
     setIsTiming(false);
     if (intervalRef.current) clearInterval(intervalRef.current);
-  });
+  }, [cardCount]);
 
+  // FIX: Retirez resetGame des dépendances
   useEffect(() => {
     resetGame();
-  }, [cardCount, resetGame]);
+  }, [cardCount]); // Seulement cardCount
 
   useEffect(() => {
     if (isTiming && matchedIndexes.length === cards.length) {
@@ -94,10 +94,8 @@ function App() {
         <div className="difficulty-selector">
           <label>Difficulté : </label>
           <select value={cardCount} onChange={(e) => setCardCount(Number(e.target.value))}>
-            
             <option value={12}>Normal (12 cartes)</option>
             <option value={24}>Difficile (24 cartes)</option>
-            
           </select>
           <button onClick={resetGame} className="replay-button">🔄 Rejouer</button>
         </div>
