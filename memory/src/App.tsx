@@ -3,10 +3,25 @@ import './App.css';
 
 type CardType = {
   id: number;
-  emoji: string;
+  image: string;
+  name: string; // Pour l'attribut alt
 };
 
-const emojiList = ['🐶', '🐱', '🦊', '🐼', '🐸', '🐵', '🐷', '🐰', '🦁', '🐯', '🐨', '🦄'];
+// Remplacez par vos propres images
+const imageList = [
+  { src: 'Canyon sauvage.jpg', name: 'Canyon' },
+  { src: 'cyberpunk crepuscule .jpg', name: 'Cyber' },
+  { src: 'dark paysage.jpg', name: 'dark' },
+  { src: 'Désert mystique.jpg', name: 'desert' },
+  { src: 'Forêt enchantée.jpg', name: 'foret' },
+  { src: 'Océan profond.jpg', name: 'ocean' },
+  { src: 'paysage pixel.jpg', name: 'pixel' },
+  { src: 'Plage paradisiaque.jpg', name: 'plage' },
+  { src: 'Toundra gelée.jpg', name: 'toundra' },
+  { src: 'Village japonais au printemps.jpg', name: 'japon' },
+  { src: 'Ville futuriste flottante.jpg', name: 'ville' },
+  { src: 'Volcan en activité.jpg', name: 'Volcan' }
+];
 
 function App() {
   const [cards, setCards] = useState<CardType[]>([]);
@@ -16,14 +31,20 @@ function App() {
 
   const [timer, setTimer] = useState<number>(0);
   const [isTiming, setIsTiming] = useState<boolean>(false);
+  const [gameWon, setGameWon] = useState<boolean>(false);
+  const [finalTime, setFinalTime] = useState<number>(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const generateShuffledCards = (count: number): CardType[] => {
     const pairsNeeded = count / 2;
-    const selectedEmojis = emojiList.slice(0, pairsNeeded);
-    const duplicated = [...selectedEmojis, ...selectedEmojis];
+    const selectedImages = imageList.slice(0, pairsNeeded);
+    const duplicated = [...selectedImages, ...selectedImages];
     const shuffled = duplicated
-      .map((emoji) => ({ emoji, id: Math.random() }))
+      .map((imageData) => ({ 
+        image: imageData.src, 
+        name: imageData.name,
+        id: Math.random() 
+      }))
       .sort(() => Math.random() - 0.5);
     return shuffled;
   };
@@ -34,20 +55,23 @@ function App() {
     setMatchedIndexes([]);
     setTimer(0);
     setIsTiming(false);
+    setGameWon(false);
+    setFinalTime(0);
     if (intervalRef.current) clearInterval(intervalRef.current);
   }, [cardCount]);
 
-  // FIX: Retirez resetGame des dépendances
   useEffect(() => {
     resetGame();
-  }, [cardCount]); // Seulement cardCount
+  }, [cardCount]);
 
   useEffect(() => {
-    if (isTiming && matchedIndexes.length === cards.length) {
+    if (isTiming && matchedIndexes.length === cards.length && cards.length > 0) {
       if (intervalRef.current) clearInterval(intervalRef.current);
       setIsTiming(false);
+      setGameWon(true);
+      setFinalTime(timer);
     }
-  }, [matchedIndexes, cards.length, isTiming]);
+  }, [matchedIndexes, cards.length, isTiming, timer]);
 
   useEffect(() => {
     if (flippedIndexes.length === 2) {
@@ -55,7 +79,7 @@ function App() {
       const firstCard = cards[firstIndex];
       const secondCard = cards[secondIndex];
 
-      if (firstCard.emoji === secondCard.emoji) {
+      if (firstCard.image === secondCard.image) {
         setMatchedIndexes((prev) => [...prev, firstIndex, secondIndex]);
         setFlippedIndexes([]);
       } else {
@@ -89,6 +113,18 @@ function App() {
     <div className="app">
       <h1>Jeu Memory 🧠</h1>
 
+      {/* Message de victoire */}
+      {gameWon && (
+        <div className="victory-overlay">
+          <div className="victory-message">
+            🎉 Bravo ! Vous avez gagné en {finalTime} seconde{finalTime > 1 ? 's' : ''} ! 🎉
+            <button onClick={resetGame} className="new-game-button">
+              Nouvelle partie
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="info-bar">
         <label>⏱️ Temps : {timer} sec</label>
         <div className="difficulty-selector">
@@ -110,7 +146,15 @@ function App() {
               className={`card ${isFlipped ? 'flipped' : ''}`}
               onClick={() => handleCardClick(index)}
             >
-              {isFlipped ? card.emoji : '❓'}
+              {isFlipped ? (
+                <img 
+                  src={card.image} 
+                  alt={card.name}
+                  className="card-image"
+                />
+              ) : (
+                <div className="card-back">❓</div>
+              )}
             </div>
           );
         })}
