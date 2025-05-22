@@ -44,3 +44,26 @@
   background-color: #fff;
   box-shadow: 0 0 10px rgba(0,0,0,0.2);
 }
+
+.replay-button {
+  margin-left: 10px;
+  padding: 6px 12px;
+  font-size: 1rem;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.replay-button:hover {
+  background-color: #45a049;
+}
+
+.info-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}

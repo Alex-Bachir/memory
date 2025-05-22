@@ -1,29 +1,53 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import './App.css';
-
+// dfinit chaque carte avec un `id` unique et un `emoji`.
 type CardType = {
   id: number;
   emoji: string;
 };
 
-function App() {
-  const emojiList = ['🐶', '🐱', '🦊', '🐼', '🐸', '🐵', '🐷', '🐰'];
+const emojiList = ['🐶', '🐱', '🦊', '🐼', '🐸', '🐵', '🐷', '🐰', '🦁', '🐯', '🐨', '🦄'];
 
-  const generateShuffledCards = (): CardType[] => {
-    const duplicated = [...emojiList, ...emojiList];
+function App() {
+  const [cards, setCards] = useState<CardType[]>([]);
+  const [flippedIndexes, setFlippedIndexes] = useState<number[]>([]);
+  const [matchedIndexes, setMatchedIndexes] = useState<number[]>([]);
+  const [cardCount, setCardCount] = useState<number>(12);
+
+  const [timer, setTimer] = useState<number>(0);
+  const [isTiming, setIsTiming] = useState<boolean>(false);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const generateShuffledCards = (count: number): CardType[] => {
+    const pairsNeeded = count / 2;
+    const selectedEmojis = emojiList.slice(0, pairsNeeded);
+    const duplicated = [...selectedEmojis, ...selectedEmojis];
     const shuffled = duplicated
       .map((emoji) => ({ emoji, id: Math.random() }))
       .sort(() => Math.random() - 0.5);
     return shuffled;
   };
 
-  const [cards, setCards] = useState<CardType[]>([]);
-  const [flippedIndexes, setFlippedIndexes] = useState<number[]>([]);
-  const [matchedIndexes, setMatchedIndexes] = useState<number[]>([]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const resetGame = useCallback(() => {
+    setCards(generateShuffledCards(cardCount));
+    setFlippedIndexes([]);
+    setMatchedIndexes([]);
+    setTimer(0);
+    setIsTiming(false);
+    if (intervalRef.current) clearInterval(intervalRef.current);
+  });
 
   useEffect(() => {
-    setCards(generateShuffledCards());
-  }, []);
+    resetGame();
+  }, [cardCount, resetGame]);
+
+  useEffect(() => {
+    if (isTiming && matchedIndexes.length === cards.length) {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      setIsTiming(false);
+    }
+  }, [matchedIndexes, cards.length, isTiming]);
 
   useEffect(() => {
     if (flippedIndexes.length === 2) {
@@ -32,11 +56,9 @@ function App() {
       const secondCard = cards[secondIndex];
 
       if (firstCard.emoji === secondCard.emoji) {
-        // ✅ Paire trouvée
         setMatchedIndexes((prev) => [...prev, firstIndex, secondIndex]);
         setFlippedIndexes([]);
       } else {
-        // ❌ Pas une paire ➜ cacher après 1 sec
         setTimeout(() => {
           setFlippedIndexes([]);
         }, 1000);
@@ -45,16 +67,42 @@ function App() {
   }, [flippedIndexes, cards]);
 
   const handleCardClick = (index: number) => {
-    // Bloquer si déjà retournée ou si 2 cartes sont déjà retournées
-    if (flippedIndexes.includes(index) || matchedIndexes.includes(index) || flippedIndexes.length === 2) {
+    if (
+      flippedIndexes.includes(index) ||
+      matchedIndexes.includes(index) ||
+      flippedIndexes.length === 2
+    ) {
       return;
     }
+
+    if (!isTiming) {
+      setIsTiming(true);
+      intervalRef.current = setInterval(() => {
+        setTimer((prev) => prev + 1);
+      }, 1000);
+    }
+
     setFlippedIndexes((prev) => [...prev, index]);
   };
 
   return (
     <div className="app">
       <h1>Jeu Memory 🧠</h1>
+
+      <div className="info-bar">
+        <label>⏱️ Temps : {timer} sec</label>
+        <div className="difficulty-selector">
+          <label>Difficulté : </label>
+          <select value={cardCount} onChange={(e) => setCardCount(Number(e.target.value))}>
+            
+            <option value={12}>Normal (12 cartes)</option>
+            <option value={24}>Difficile (24 cartes)</option>
+            
+          </select>
+          <button onClick={resetGame} className="replay-button">🔄 Rejouer</button>
+        </div>
+      </div>
+
       <div className="grid">
         {cards.map((card, index) => {
           const isFlipped = flippedIndexes.includes(index) || matchedIndexes.includes(index);
@@ -74,5 +122,3 @@ function App() {
 }
 
 export default App;
-
-
