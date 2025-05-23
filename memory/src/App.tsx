@@ -172,22 +172,7 @@ function App() {
         </div>
       )}
 
-      <div className="info-bar">
-        <label>⏱️ Temps : {timer} sec</label>
-        <div className="difficulty-selector">
-          <label>Difficulté : </label>
-          <select
-            value={cardCount}
-            onChange={(e) => setCardCount(Number(e.target.value))}
-          >
-            <option value={12}>Normal (12 cartes)</option>
-            <option value={24}>Difficile (24 cartes)</option>
-          </select>
-          <button onClick={resetGame} className="replay-button">
-            🔄 Rejouer
-          </button>
-        </div>
-      </div>
+      
 
       <div className="leaderboard">
   <h2>🏆 Classement</h2>
@@ -244,6 +229,23 @@ function App() {
   </table>
 )}
 </div>
+
+<div className="info-bar">
+        <label>⏱️ Temps : {timer} sec</label>
+        <div className="difficulty-selector">
+          <label>Difficulté : </label>
+          <select
+            value={cardCount}
+            onChange={(e) => setCardCount(Number(e.target.value))}
+          >
+            <option value={12}>Normal (12 cartes)</option>
+            <option value={24}>Difficile (24 cartes)</option>
+          </select>
+          <button onClick={resetGame} className="replay-button">
+            🔄 Rejouer
+          </button>
+        </div>
+      </div>
 
 
       <div className="grid">
