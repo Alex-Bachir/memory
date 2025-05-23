@@ -4,10 +4,10 @@ import "./App.css";
 type CardType = {
   id: number;
   image: string;
-  name: string; // Pour l'attribut alt
+  name: string; 
 };
 
-// Remplacez par vos propres images
+
 const imageList = [
   { src: "Canyon sauvage.jpg", name: "Canyon" },
   { src: "cyberpunk crepuscule .jpg", name: "Cyber" },
