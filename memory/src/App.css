@@ -199,3 +199,37 @@
 .card:hover {
   transform: scale(1.05);
 }
+
+.grid.matched {
+  background-color: #a3e635; /* Vert clair par exemple */
+  transition: background-color 0.3s ease;
+}
+
+.leaderboard {
+  margin-top: 20px;
+  padding: 10px;
+  background: #f4f4f4;
+  border-radius: 10px;
+}
+
+.leaderboard table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.leaderboard th, .leaderboard td {
+  padding: 8px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.player-input {
+  margin: 8px 0;
+  padding: 5px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+.save-score-button {
+  margin-right: 10px;
+}
