@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import "./App.css";
 
+
 type CardType = {
   id: number;
   image: string;
-  name: string; 
+  name: string;
 };
 
 
@@ -24,22 +25,28 @@ const imageList = [
 ];
 
 function App() {
-  const [cards, setCards] = useState<CardType[]>([]);
-  const [flippedIndexes, setFlippedIndexes] = useState<number[]>([]);
-  const [matchedIndexes, setMatchedIndexes] = useState<number[]>([]);
-  const [cardCount, setCardCount] = useState<number>(12);
+  //  state 
+  const [cards, setCards] = useState<CardType[]>([]);                  
+  const [flippedIndexes, setFlippedIndexes] = useState<number[]>([]); 
+  const [matchedIndexes, setMatchedIndexes] = useState<number[]>([]); 
+  const [cardCount, setCardCount] = useState<number>(12);             
 
-  const [timer, setTimer] = useState<number>(0);
-  const [isTiming, setIsTiming] = useState<boolean>(false);
-  const [gameWon, setGameWon] = useState<boolean>(false);
-  const [finalTime, setFinalTime] = useState<number>(0);
+  // mon timer
+  const [timer, setTimer] = useState<number>(0); 
+  const [isTiming, setIsTiming] = useState<boolean>(false); 
+  const [gameWon, setGameWon] = useState<boolean>(false); 
+  const [finalTime, setFinalTime] = useState<number>(0); 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const [leaderboard, setLeaderboard] = useState< { name: string; time: number; difficulty: number }[]>(() => {
-    const saved = localStorage.getItem ('memory-leaderboard');
+  // Classement (localStorage)
+  const [leaderboard, setLeaderboard] = useState<
+    { name: string; time: number; difficulty: number }[]
+  >(() => {
+    const saved = localStorage.getItem("memory-leaderboard");
     return saved ? JSON.parse(saved) : [];
   });
 
+  // fonction qui mélange les cartes
   const generateShuffledCards = (count: number): CardType[] => {
     const pairsNeeded = count / 2;
     const selectedImages = imageList.slice(0, pairsNeeded);
@@ -48,12 +55,13 @@ function App() {
       .map((imageData) => ({
         image: imageData.src,
         name: imageData.name,
-        id: Math.random(),
+        id: Math.random(), // 
       }))
       .sort(() => Math.random() - 0.5);
     return shuffled;
   };
 
+  // reset
   const resetGame = useCallback(() => {
     setCards(generateShuffledCards(cardCount));
     setFlippedIndexes([]);
@@ -62,13 +70,18 @@ function App() {
     setIsTiming(false);
     setGameWon(false);
     setFinalTime(0);
-    if (intervalRef.current) clearInterval(intervalRef.current);
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
   }, [cardCount]);
 
+ 
   useEffect(() => {
     resetGame();
   }, [cardCount, resetGame]);
 
+  // Détecte si la partie est gagnée
   useEffect(() => {
     if (
       isTiming &&
@@ -82,6 +95,7 @@ function App() {
     }
   }, [matchedIndexes, cards.length, isTiming, timer]);
 
+  //  compare les carte retournées
   useEffect(() => {
     if (flippedIndexes.length === 2) {
       const [firstIndex, secondIndex] = flippedIndexes;
@@ -94,25 +108,27 @@ function App() {
       } else {
         setTimeout(() => {
           setFlippedIndexes([]);
-        }, 1000);
+        }, 1000); // 
       }
     }
   }, [flippedIndexes, cards]);
 
+  // Met à jour le classement
   useEffect(() => {
-  localStorage.setItem('memory-leaderboard', JSON.stringify(leaderboard));
-}, [leaderboard]);
+    localStorage.setItem("memory-leaderboard", JSON.stringify(leaderboard));
+  }, [leaderboard]);
 
-
+  // Gère le clic 
   const handleCardClick = (index: number) => {
     if (
       flippedIndexes.includes(index) ||
       matchedIndexes.includes(index) ||
       flippedIndexes.length === 2
     ) {
-      return;
+      return; 
     }
 
+    // gérer le chrono au premier clic d'une carte
     if (!isTiming) {
       setIsTiming(true);
       intervalRef.current = setInterval(() => {
@@ -127,12 +143,11 @@ function App() {
     <div className="app">
       <h1>Jeu Memory 🧠</h1>
 
-      {/* Message de victoire */}
+      
       {gameWon && (
         <div className="victory-overlay">
-          <div className="victory-message">
-            🎉 Bravo ! Vous avez gagné en {finalTime} seconde
-            {finalTime > 1 ? "s" : ""} ! 🎉
+          <div className="victory-message" role="alert" aria-live="assertive">
+             Bravo ! Vous avez gagné en {finalTime} seconde{finalTime > 1 ? "s" : ""} ! 
             <div>
               <label>Souhaitez-vous enregistrer votre score ?</label>
               <input
@@ -144,9 +159,7 @@ function App() {
               <div>
                 <button
                   onClick={() => {
-                    const input = document.getElementById(
-                      "player-name"
-                    ) as HTMLInputElement;
+                    const input = document.getElementById("player-name") as HTMLInputElement;
                     if (input.value.trim()) {
                       setLeaderboard((prev) => [
                         ...prev,
@@ -161,10 +174,10 @@ function App() {
                   }}
                   className="save-score-button"
                 >
-                  ✅ Enregistrer
+                   Enregistrer
                 </button>
                 <button onClick={resetGame} className="new-game-button">
-                  ❌ Ignorer
+                   Ignorer
                 </button>
               </div>
             </div>
@@ -172,65 +185,59 @@ function App() {
         </div>
       )}
 
-      
-
+     
       <div className="leaderboard">
-  <h2>🏆 Classement</h2>
+        <h2>🏆 Classement</h2>
 
-  <h3>🎯 Mode Normal (12 cartes)</h3>
-{leaderboard.filter(entry => entry.difficulty === 12).length === 0 ? (
-  <p>Aucun score enregistré.</p>
-) : (
-  <table>
-    <thead>
-      <tr>
-        <th>Nom</th>
-        <th>Temps (s)</th>
-      </tr>
-    </thead>
-    <tbody>
-      {leaderboard
-        .filter(entry => entry.difficulty === 12)
-        .sort((a, b) => a.time - b.time)
-        .slice(0, 5)  // 👈 Limite à 5
-        .map((entry, idx) => (
-          <tr key={`normal-${idx}`}>
-            <td>{entry.name}</td>
-            <td>{entry.time}</td>
-          </tr>
-        ))}
-    </tbody>
-  </table>
-)}
+        <h3>🎯 Mode Normal (12 cartes)</h3>
+        {leaderboard.filter(entry => entry.difficulty === 12).length === 0 ? (
+          <p>Aucun score enregistré.</p>
+        ) : (
+          <table>
+            <thead>
+              <tr><th>Nom</th><th>Temps (s)</th></tr>
+            </thead>
+            <tbody>
+              {leaderboard
+                .filter(entry => entry.difficulty === 12)
+                .sort((a, b) => a.time - b.time)
+                .slice(0, 5)
+                .map((entry, idx) => (
+                  <tr key={`normal-${idx}`}>
+                    <td>{entry.name}</td>
+                    <td>{entry.time}</td>
+                  </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
 
-<h3>💀 Mode Difficile (24 cartes)</h3>
-{leaderboard.filter(entry => entry.difficulty === 24).length === 0 ? (
-  <p>Aucun score enregistré.</p>
-) : (
-  <table>
-    <thead>
-      <tr>
-        <th>Nom</th>
-        <th>Temps (s)</th>
-      </tr>
-    </thead>
-    <tbody>
-      {leaderboard
-        .filter(entry => entry.difficulty === 24)
-        .sort((a, b) => a.time - b.time)
-        .slice(0, 5)  // 👈 Limite à 5
-        .map((entry, idx) => (
-          <tr key={`difficile-${idx}`}>
-            <td>{entry.name}</td>
-            <td>{entry.time}</td>
-          </tr>
-        ))}
-    </tbody>
-  </table>
-)}
-</div>
+        <h3>💀 Mode Difficile (24 cartes)</h3>
+        {leaderboard.filter(entry => entry.difficulty === 24).length === 0 ? (
+          <p>Aucun score enregistré.</p>
+        ) : (
+          <table>
+            <thead>
+              <tr><th>Nom</th><th>Temps (s)</th></tr>
+            </thead>
+            <tbody>
+              {leaderboard
+                .filter(entry => entry.difficulty === 24)
+                .sort((a, b) => a.time - b.time)
+                .slice(0, 5)
+                .map((entry, idx) => (
+                  <tr key={`difficile-${idx}`}>
+                    <td>{entry.name}</td>
+                    <td>{entry.time}</td>
+                  </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
 
-<div className="info-bar">
+    
+      <div className="info-bar">
         <label>⏱️ Temps : {timer} sec</label>
         <div className="difficulty-selector">
           <label>Difficulté : </label>
@@ -247,11 +254,10 @@ function App() {
         </div>
       </div>
 
-
+     
       <div className="grid">
         {cards.map((card, index) => {
-          const isFlipped =
-            flippedIndexes.includes(index) || matchedIndexes.includes(index);
+          const isFlipped = flippedIndexes.includes(index) || matchedIndexes.includes(index);
           return (
             <div
               key={index}
